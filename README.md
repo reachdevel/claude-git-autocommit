@@ -72,3 +72,4 @@ When Claude finishes a turn, the `Stop` hook fires. The script:
 ## License
 
 MIT
+// hook smoke test
