@@ -1,6 +1,6 @@
 # Claude Git Autocommit
 
-[![npm version](https://badge.fury.io/js/claude-git-autocommit.svg)](https://badge.fury.io/js/claude-git-autocommit)
+[![npm version](https://img.shields.io/npm/v/claude-git-autocommit)](https://www.npmjs.com/package/claude-git-autocommit)
 
 Auto-commit for Claude Code: derives commit messages from the staged git diff when Claude finishes a turn, using the `Stop` hook. No model call, no LLM cost, deterministic messages.
 

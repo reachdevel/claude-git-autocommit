@@ -31,21 +31,19 @@ function hookEntry() {
   }
 }
 
-function ensureHooks(settings) {
+function ensureHooks(settings, hookType) {
   if (!settings.hooks) settings.hooks = {}
-  if (!settings.hooks.Stop) settings.hooks.Stop = []
-  return settings.hooks.Stop
+  if (!settings.hooks[hookType]) settings.hooks[hookType] = []
+  return settings.hooks[hookType]
 }
 
-function alreadyInstalled(stopHooks) {
-  return stopHooks.some((group) =>
-    (group.hooks ?? []).some((h) => h.command === HOOK_COMMAND)
-  )
+function alreadyInstalled(hooks) {
+  return hooks.some((h) => (h.hooks ?? []).some((hook) => hook.command === HOOK_COMMAND))
 }
 
-function addHook(stopHooks) {
-  if (alreadyInstalled(stopHooks)) return false
-  stopHooks.push({ hooks: [hookEntry()] })
+function addHook(hooks) {
+  if (alreadyInstalled(hooks)) return false
+  hooks.push({ hooks: [hookEntry()] })
   return true
 }
 
@@ -80,8 +78,12 @@ function main() {
       : join(REPO_ROOT, ".claude", "settings.json")
 
   const settings = loadSettings(settingsPath)
-  const stopHooks = ensureHooks(settings)
-  const changed = addHook(stopHooks)
+
+  let changed = false
+  for (const hookType of ["Stop", "StopFailure"]) {
+    const hooks = ensureHooks(settings, hookType)
+    if (addHook(hooks)) changed = true
+  }
 
   if (!changed) {
     console.log(`claude-git-autocommit hook already installed in ${settingsPath}`)
@@ -89,13 +91,19 @@ function main() {
   }
 
   if (dryRun) {
-    console.log(`[dry-run] Would add Stop hook to ${settingsPath}:`)
-    console.log(JSON.stringify({ hooks: { Stop: [{ hooks: [hookEntry()] }] } }, null, 2))
+    console.log(`[dry-run] Would add Stop/StopFailure hooks to ${settingsPath}:`)
+    const entry = { hooks: [hookEntry()] }
+    console.log(JSON.stringify({
+      hooks: {
+        Stop: [entry],
+        StopFailure: [entry]
+      }
+    }, null, 2))
     process.exit(0)
   }
 
   writeSettings(settingsPath, settings)
-  console.log(`Installed claude-git-autocommit Stop hook in ${settingsPath}`)
+  console.log(`Installed claude-git-autocommit Stop/StopFailure hooks in ${settingsPath}`)
   console.log(`Hook command: ${HOOK_COMMAND}`)
   console.log("\nMake sure the compiled hook is executable:")
   console.log(`  chmod +x ${HOOK_COMMAND}`)
