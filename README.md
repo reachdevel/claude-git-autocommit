@@ -27,31 +27,27 @@ Commit messages are derived from the staged diff itself, so they are determinist
 
 ## Installation
 
-### User settings (all projects)
+## Installation
 
-Add to `~/.claude/settings.json`:
+### One-shot install script (recommended)
 
-```json
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/leventkurt/opt/claude-git-autocommit/dist/commit-from-diff.mjs",
-            "args": []
-          }
-        ]
-      }
-    ]
-  }
-}
+No manual JSON editing — the script adds the `Stop` hook to your Claude Code settings for you:
+
+```bash
+# All projects (user settings: ~/.claude/settings.json)
+node scripts/install.js --user
+
+# Single repo (project settings: .claude/settings.json)
+node scripts/install.js --project
 ```
 
-### Project settings (single repo, committable)
+Run with `--dry-run` to preview the change without writing:
 
-Add to `.claude/settings.json` in your project:
+```bash
+node scripts/install.js --user --dry-run
+```
+
+The script writes this hook entry (points at the compiled script in this repo):
 
 ```json
 {
@@ -71,10 +67,15 @@ Add to `.claude/settings.json` in your project:
 }
 ```
 
-### As a plugin (bundled with `hooks/hooks.json`)
+### Manual install (JSON files)
 
-Ship `hooks/hooks.json` with your plugin; it references
-`${CLAUDE_PLUGIN_ROOT}/dist/commit-from-diff.mjs`.
+If you prefer to edit settings by hand, add the entry above to:
+
+| Scope | File | Notes |
+| --- | --- | --- |
+| All projects | `~/.claude/settings.json` | User settings — applies everywhere |
+| Single repo | `.claude/settings.json` | Project settings — committable to the repo |
+| Plugin bundle | `hooks/hooks.json` | Ship with a plugin; uses `${CLAUDE_PLUGIN_ROOT}/dist/commit-from-diff.mjs` |
 
 ## How It Works
 
