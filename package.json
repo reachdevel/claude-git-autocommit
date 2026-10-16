@@ -1,6 +1,6 @@
 {
   "name": "claude-git-autocommit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Auto-commit for Claude Code via Stop hook - diff-derived messages, no model call",
   "author": "Levent Kurt <leventkurt@gmail.com>",
   "license": "MIT",
