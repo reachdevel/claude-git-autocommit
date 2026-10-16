@@ -8,4 +8,4 @@
 - [x] Test against throwaway git repos (mirror OpenCode verify scenarios) — 12/12 pass
 - [x] Decide error handling: always exit 0 vs allow block on failure — always exit 0
 - [x] Document install: user settings vs project settings vs plugin
-- [x] First real commit via Claude Code hook — hook ran end-to-end against this repo (`docs: update README.md`, commit ef5dad4); hook contract verified via stdin `{"cwd"}` and 12/12 throwaway-repo scenarios
+- [x] First real commit via Claude Code hook — hook ran end-to-end against this repo (`docs: update README.md`); hook contract verified via stdin `{"cwd"}` and 12/12 throwaway-repo scenarios

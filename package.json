@@ -2,14 +2,43 @@
   "name": "claude-git-autocommit",
   "version": "1.0.0",
   "description": "Auto-commit for Claude Code via Stop hook - diff-derived messages, no model call",
-  "private": true,
+  "author": "Levent Kurt <leventkurt@gmail.com>",
+  "license": "MIT",
   "type": "module",
+  "main": "dist/commit-from-diff.mjs",
+  "types": "dist/commit-from-diff.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reachdevel/claude-git-autocommit.git"
+  },
+  "homepage": "https://github.com/reachdevel/claude-git-autocommit#readme",
+  "bugs": {
+    "url": "https://github.com/reachdevel/claude-git-autocommit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "hooks"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && mv dist/commit-from-diff.js dist/commit-from-diff.mjs",
+    "build": "tsc -p tsconfig.json && mv dist/commit-from-diff.js dist/commit-from-diff.mjs && chmod +x dist/commit-from-diff.mjs",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit"
   },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "claude-hook",
+    "git",
+    "autocommit",
+    "automation"
+  ],
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

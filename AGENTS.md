@@ -75,5 +75,11 @@ Type inference is structural: `test` (all test paths), `docs` (all doc paths), `
 ## How to use
 
 1. Install the hook in `~/.claude/settings.json` (see `.claude/settings.json` example)
-2. Make `src/commit-from-diff.mjs` executable: `chmod +x src/commit-from-diff.mjs`
+2. Make `dist/commit-from-diff.mjs` executable: `chmod +x dist/commit-from-diff.mjs`
 3. Claude Code will run it on every `Stop` event
+
+## Releases
+
+- Version is in `package.json`.
+- Pushing a `v*` tag (e.g. `git tag v1.0.0 && git push origin v1.0.0`) triggers `.github/workflows/publish.yml`, which runs `npm ci`, `npm run build`, and `npm publish` to npm via OIDC trusted publishing.
+- `dist/` is gitignored — only `src/` and package metadata ship. The published package's `dist/` is built by CI from the tagged commit.
