@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/leventkurt/opt/claude-git-autocommit/dist/commit-from-diff.mjs",
+            "args": []
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/leventkurt/opt/claude-git-autocommit/dist/commit-from-diff.mjs",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}

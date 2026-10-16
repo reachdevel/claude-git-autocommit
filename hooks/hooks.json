@@ -1,0 +1,29 @@
+{
+  "description": "Auto-commit git changes when Claude finishes a turn",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/dist/commit-from-diff.mjs",
+            "args": [],
+            "async": false
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/dist/commit-from-diff.mjs",
+            "args": [],
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
+}
