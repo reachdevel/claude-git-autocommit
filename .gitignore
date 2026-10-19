@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 bun.lock
 PLAN.md
+
+# Local dogfood config; install with the plugin instead
+.claude/settings.json
