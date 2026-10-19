@@ -7,11 +7,17 @@
   "type": "module",
   "main": "dist/commit-from-diff.mjs",
   "types": "dist/commit-from-diff.d.ts",
+  "bin": {
+    "claude-git-autocommit": "scripts/install.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reachdevel/claude-git-autocommit.git"
   },
-  "homepage": "https://github.com/reachdevel/claude-git-autocommit#readme",
+  "homepage": "https://www.npmjs.com/package/claude-git-autocommit",
   "bugs": {
     "url": "https://github.com/reachdevel/claude-git-autocommit/issues"
   },

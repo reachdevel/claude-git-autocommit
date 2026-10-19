@@ -149,10 +149,10 @@ function main() {
     try {
       const email = git(cwd, ["config", "--get", "user.email"]).trim()
       if (!email && !process.env.GIT_AUTHOR_EMAIL) {
-        identity = ["-c", "user.name=opencode", "-c", "user.email=opencode@localhost"]
+        identity = ["-c", "user.name=claude-git-autocommit", "-c", "user.email=claude-git-autocommit@localhost"]
       }
     } catch {
-      identity = ["-c", "user.name=opencode", "-c", "user.email=opencode@localhost"]
+      identity = ["-c", "user.name=claude-git-autocommit", "-c", "user.email=claude-git-autocommit@localhost"]
     }
 
     git(cwd, [...identity, "commit", "-m", message, "--no-verify"])

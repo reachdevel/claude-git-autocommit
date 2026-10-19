@@ -27,27 +27,29 @@ Commit messages are derived from the staged diff itself, so they are determinist
 
 ## Installation
 
-## Installation
+Requires Node.js 18+ and Claude Code with hooks enabled.
 
-### One-shot install script (recommended)
+### One-shot install (recommended)
 
-No manual JSON editing — the script adds the `Stop` hook to your Claude Code settings for you:
+`npx` runs the installer from npm; there is nothing to clone and no JSON to edit by hand.
 
 ```bash
 # All projects (user settings: ~/.claude/settings.json)
-node scripts/install.js --user
+npx claude-git-autocommit --user
 
 # Single repo (project settings: .claude/settings.json)
-node scripts/install.js --project
+npx claude-git-autocommit --project
 ```
 
-Run with `--dry-run` to preview the change without writing:
+Preview the change without writing anything:
 
 ```bash
-node scripts/install.js --user --dry-run
+npx claude-git-autocommit --user --dry-run
 ```
 
-The script writes this hook entry (points at the compiled script in this repo):
+The installer copies the compiled hook to `.claude/hooks/claude-git-autocommit.mjs`
+next to the settings file, so it keeps working after the npx cache is cleared, and
+writes this entry:
 
 ```json
 {
@@ -57,7 +59,7 @@ The script writes this hook entry (points at the compiled script in this repo):
         "hooks": [
           {
             "type": "command",
-            "command": "/absolute/path/to/claude-git-autocommit/dist/commit-from-diff.mjs",
+            "command": "/home/you/.claude/hooks/claude-git-autocommit.mjs",
             "args": []
           }
         ]
@@ -66,6 +68,9 @@ The script writes this hook entry (points at the compiled script in this repo):
   }
 }
 ```
+
+The same entry is added for `StopFailure`. Re-running the installer updates the
+existing entry instead of adding a duplicate.
 
 ### Manual install (JSON files)
 
@@ -124,7 +129,7 @@ Messages describe *what changed*, not *why*. They are structural by design: dete
 
 ## Requirements
 
-- Node.js
+- Node.js 18+
 - Git
 - Claude Code with hooks enabled
 

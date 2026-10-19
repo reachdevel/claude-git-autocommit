@@ -1,112 +1,151 @@
 #!/usr/bin/env node
 /**
- * install.js — One-shot install of the claude-git-autocommit Stop hook.
+ * install.js — install the claude-git-autocommit Stop hook.
  *
- * Adds the hook entry to Claude Code settings JSON (user or project scope),
- * then points you at the compiled hook script. No manual JSON editing needed.
+ * Copies the compiled hook into the Claude config directory and adds it to
+ * the settings file (user or project scope). Safe to re-run: an existing
+ * install is updated in place instead of adding a duplicate.
  *
  * Usage:
- *   # Install for all projects (user settings)
- *   node scripts/install.js --user
- *
- *   # Install for a single repo (project settings)
- *   node scripts/install.js --project
- *
- *   # Dry run (print what would change, don't write)
- *   node scripts/install.js --user --dry-run
+ *   npx claude-git-autocommit --user
+ *   npx claude-git-autocommit --project
+ *   npx claude-git-autocommit --user --dry-run
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
+import {
+  chmodSync,
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { basename, dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
-const REPO_ROOT = join(process.cwd())
-const HOOK_COMMAND = join(REPO_ROOT, "dist", "commit-from-diff.mjs")
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
+const HOOK_SOURCE = join(PACKAGE_ROOT, "dist", "commit-from-diff.mjs")
+const HOOK_NAME = "claude-git-autocommit.mjs"
+const LEGACY_HOOK_NAME = "commit-from-diff.mjs"
+const HOOK_TYPES = ["Stop", "StopFailure"]
 
-function hookEntry() {
-  return {
-    type: "command",
-    command: HOOK_COMMAND,
-    args: []
-  }
+function usage() {
+  return [
+    "Usage: claude-git-autocommit [--user | --project] [--dry-run]",
+    "",
+    "  --user, -u       Write to ~/.claude/settings.json (all projects)",
+    "  --project, -p    Write to ./.claude/settings.json (single repo)",
+    "  --dry-run, -n    Print the change without writing anything",
+    "  --help, -h       Show this help",
+    "  --version, -v    Print the version",
+  ].join("\n")
 }
 
-function ensureHooks(settings, hookType) {
-  if (!settings.hooks) settings.hooks = {}
-  if (!settings.hooks[hookType]) settings.hooks[hookType] = []
-  return settings.hooks[hookType]
-}
-
-function alreadyInstalled(hooks) {
-  return hooks.some((h) => (h.hooks ?? []).some((hook) => hook.command === HOOK_COMMAND))
-}
-
-function addHook(hooks) {
-  if (alreadyInstalled(hooks)) return false
-  hooks.push({ hooks: [hookEntry()] })
-  return true
+function fail(message) {
+  console.error(message)
+  process.exit(1)
 }
 
 function loadSettings(path) {
   if (!existsSync(path)) return {}
+  const raw = readFileSync(path, "utf8")
   try {
-    return JSON.parse(readFileSync(path, "utf8"))
+    return JSON.parse(raw)
   } catch {
-    return {}
+    fail(`Cannot parse ${path}. Fix the JSON and run the installer again.`)
   }
 }
 
-function writeSettings(path, settings) {
-  const dir = join(path, "..")
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-  writeFileSync(path, JSON.stringify(settings, null, 2) + "\n", "utf8")
+function isOurHook(hook) {
+  if (!hook || typeof hook.command !== "string") return false
+  const name = basename(hook.command)
+  return name === HOOK_NAME || name === LEGACY_HOOK_NAME
+}
+
+function installHooks(settings, hookPath) {
+  let changed = false
+
+  for (const hookType of HOOK_TYPES) {
+    if (!settings.hooks) settings.hooks = {}
+    if (!Array.isArray(settings.hooks[hookType])) settings.hooks[hookType] = []
+    const groups = settings.hooks[hookType]
+    let found = false
+
+    for (const group of groups) {
+      if (!group || !Array.isArray(group.hooks)) continue
+      for (const hook of group.hooks) {
+        if (!isOurHook(hook)) continue
+        found = true
+        if (hook.command !== hookPath) {
+          hook.command = hookPath
+          changed = true
+        }
+      }
+    }
+
+    if (!found) {
+      groups.push({ hooks: [{ type: "command", command: hookPath, args: [] }] })
+      changed = true
+    }
+  }
+
+  return changed
 }
 
 function main() {
   const args = process.argv.slice(2)
-  const scope = args.includes("--user") ? "user" : args.includes("--project") ? "project" : null
-  const dryRun = args.includes("--dry-run")
+  let scope = null
+  let dryRun = false
 
-  if (!scope) {
-    console.error("Usage: node scripts/install.js [--user | --project] [--dry-run]")
-    process.exit(1)
+  for (const arg of args) {
+    if (arg === "--user" || arg === "-u") scope = "user"
+    else if (arg === "--project" || arg === "-p") scope = "project"
+    else if (arg === "--dry-run" || arg === "-n") dryRun = true
+    else if (arg === "--help" || arg === "-h") {
+      console.log(usage())
+      return
+    } else if (arg === "--version" || arg === "-v") {
+      const pkg = JSON.parse(readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8"))
+      console.log(pkg.version)
+      return
+    } else {
+      fail(`Unknown option: ${arg}\n\n${usage()}`)
+    }
+  }
+
+  if (!scope) fail(`Choose a scope.\n\n${usage()}`)
+  if (!existsSync(HOOK_SOURCE)) {
+    fail(`Hook not found at ${HOOK_SOURCE}. Run \`npm run build\` first.`)
   }
 
   const settingsPath =
     scope === "user"
       ? join(homedir(), ".claude", "settings.json")
-      : join(REPO_ROOT, ".claude", "settings.json")
+      : join(process.cwd(), ".claude", "settings.json")
+  const hookDir = join(dirname(settingsPath), "hooks")
+  const hookPath = join(hookDir, HOOK_NAME)
 
   const settings = loadSettings(settingsPath)
-
-  let changed = false
-  for (const hookType of ["Stop", "StopFailure"]) {
-    const hooks = ensureHooks(settings, hookType)
-    if (addHook(hooks)) changed = true
-  }
-
-  if (!changed) {
-    console.log(`claude-git-autocommit hook already installed in ${settingsPath}`)
-    process.exit(0)
-  }
+  const changed = installHooks(settings, hookPath)
 
   if (dryRun) {
-    console.log(`[dry-run] Would add Stop/StopFailure hooks to ${settingsPath}:`)
-    const entry = { hooks: [hookEntry()] }
-    console.log(JSON.stringify({
-      hooks: {
-        Stop: [entry],
-        StopFailure: [entry]
-      }
-    }, null, 2))
-    process.exit(0)
+    console.log(`[dry-run] Would install the ${HOOK_TYPES.join(" and ")} hooks.`)
+    console.log(`  settings: ${settingsPath}`)
+    console.log(`  hook:     ${hookPath}`)
+    console.log(JSON.stringify({ hooks: settings.hooks }, null, 2))
+    return
   }
 
-  writeSettings(settingsPath, settings)
-  console.log(`Installed claude-git-autocommit Stop/StopFailure hooks in ${settingsPath}`)
-  console.log(`Hook command: ${HOOK_COMMAND}`)
-  console.log("\nMake sure the compiled hook is executable:")
-  console.log(`  chmod +x ${HOOK_COMMAND}`)
+  mkdirSync(hookDir, { recursive: true })
+  copyFileSync(HOOK_SOURCE, hookPath)
+  chmodSync(hookPath, 0o755)
+  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n", "utf8")
+
+  console.log(changed ? "Installed claude-git-autocommit." : "claude-git-autocommit is already installed; hook refreshed.")
+  console.log(`  settings: ${settingsPath}`)
+  console.log(`  hook:     ${hookPath}`)
+  console.log(`  events:   ${HOOK_TYPES.join(", ")}`)
 }
 
 main()
