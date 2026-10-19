@@ -1,0 +1,21 @@
+{
+  "name": "git-autocommit",
+  "version": "1.1.0",
+  "description": "Auto-commit for Claude Code via Stop hook - diff-derived Conventional Commit messages, no model call",
+  "author": {
+    "name": "Levent Kurt",
+    "email": "leventkurt@gmail.com",
+    "url": "https://github.com/reachdevel"
+  },
+  "homepage": "https://github.com/reachdevel/claude-git-autocommit",
+  "repository": "https://github.com/reachdevel/claude-git-autocommit",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-hook",
+    "git",
+    "autocommit",
+    "automation",
+    "conventional-commits"
+  ]
+}

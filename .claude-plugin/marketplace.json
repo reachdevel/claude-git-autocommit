@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "reachdevel",
+  "owner": {
+    "name": "Levent Kurt",
+    "email": "leventkurt@gmail.com"
+  },
+  "metadata": {
+    "description": "Reachdevel plugins for Claude Code",
+    "version": "1.1.0"
+  },
+  "plugins": [
+    {
+      "name": "git-autocommit",
+      "source": "./",
+      "description": "Auto-commit for Claude Code via Stop hook - diff-derived Conventional Commit messages, no model call",
+      "version": "1.1.0",
+      "author": {
+        "name": "Levent Kurt",
+        "email": "leventkurt@gmail.com",
+        "url": "https://github.com/reachdevel"
+      },
+      "homepage": "https://github.com/reachdevel/claude-git-autocommit",
+      "repository": "https://github.com/reachdevel/claude-git-autocommit",
+      "license": "MIT",
+      "keywords": [
+        "claude-code",
+        "claude-hook",
+        "git",
+        "autocommit",
+        "automation",
+        "conventional-commits"
+      ],
+      "category": "development"
+    }
+  ]
+}

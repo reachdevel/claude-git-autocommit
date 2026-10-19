@@ -27,11 +27,36 @@ Commit messages are derived from the staged diff itself, so they are determinist
 
 ## Installation
 
-Requires Node.js 18+ and Claude Code with hooks enabled.
+Requires Claude Code with hooks enabled. The plugin route needs the `claude` CLI
+(2.1.292+ for the one-step `--marketplace` install); the npx route needs Node.js 18+.
 
-### One-shot install (recommended)
+### As a Claude Code plugin (recommended)
 
-`npx` runs the installer from npm; there is nothing to clone and no JSON to edit by hand.
+Add the marketplace once, then install:
+
+```bash
+claude plugin marketplace add reachdevel/claude-git-autocommit
+claude plugin install git-autocommit@reachdevel
+```
+
+Or in one step (Claude Code 2.1.292+):
+
+```bash
+claude plugin install git-autocommit --marketplace reachdevel/claude-git-autocommit
+```
+
+The plugin loads the `Stop` and `StopFailure` hooks from `hooks/hooks.json` at user
+scope. Restart Claude Code after installing. Update or remove it with:
+
+```bash
+claude plugin update git-autocommit
+claude plugin uninstall git-autocommit
+```
+
+### Standalone hook with npx
+
+If you don't use the plugin system, `npx` copies the compiled hook into your
+settings directory. There is nothing to clone and no JSON to edit by hand.
 
 ```bash
 # All projects (user settings: ~/.claude/settings.json)

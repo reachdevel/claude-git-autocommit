@@ -4,7 +4,7 @@ This file records decisions so we don't re-litigate them on every change. If you
 
 ## What this is
 
-A Claude Code port of the OpenCode `@reachdevel/opencode-git-commit` plugin. It auto-commits when Claude finishes a turn (`Stop` hook) by deriving the commit message from the staged git diff itself — no model call, no sanitizing of assistant prose.
+A Claude Code port of the OpenCode `opencode-git-autocommit` plugin. It auto-commits when Claude finishes a turn (`Stop` hook) by deriving the commit message from the staged git diff itself — no model call, no sanitizing of assistant prose.
 
 ## Runtime differences from the OpenCode plugin
 
@@ -46,11 +46,22 @@ Claude Code hooks with non-zero exit codes **block the turn**. A failed `git com
 
 ### 4. Identity fallback
 
-Commits with `user.name=opencode`, `user.email=opencode@localhost` only when the machine has no `user.email` configured.
+Commits with `user.name=claude-git-autocommit`, `user.email=claude-git-autocommit@localhost` only when the machine has no `user.email` configured.
 
 ### 5. `--no-verify`
 
 Auto-commits bypass hooks so they never block on pre-commit hooks.
+
+## Plugin distribution
+
+- `.claude-plugin/plugin.json` is the plugin manifest. `.claude-plugin/marketplace.json` is a single-plugin marketplace named `reachdevel` with `"source": "./"`.
+- The plugin is named **`git-autocommit`**, not `claude-git-autocommit`: Claude Code reserves the `claude-` prefix for Anthropic's own plugins. The npm package keeps the `claude-git-autocommit` name.
+- Hooks are auto-discovered from `hooks/hooks.json`; commands use `${CLAUDE_PLUGIN_ROOT}/dist/commit-from-diff.mjs`.
+- **`dist/` is committed.** A plugin installed from git has no build step, so the compiled hook must exist at the tagged commit. Run `npm run build` and commit `dist/` whenever `src/` changes.
+- The manifest `version` in both `.claude-plugin` files must match `package.json`; bump all three together.
+- Validate with `claude plugin validate .` before tagging.
+- Install: `claude plugin install git-autocommit --marketplace reachdevel/claude-git-autocommit`, or `claude plugin marketplace add reachdevel/claude-git-autocommit` followed by `claude plugin install git-autocommit@reachdevel`.
+- The npm tarball ships `.claude-plugin/`, `hooks/`, `dist/` and `scripts/`, so npm users get both the plugin and the npx installer.
 
 ## Settings scope
 
@@ -74,12 +85,13 @@ Type inference is structural: `test` (all test paths), `docs` (all doc paths), `
 
 ## How to use
 
-1. Install the hook in `~/.claude/settings.json` (see `.claude/settings.json` example)
-2. Make `dist/commit-from-diff.mjs` executable: `chmod +x dist/commit-from-diff.mjs`
-3. Claude Code will run it on every `Stop` event
+1. Install as a Claude Code plugin: `claude plugin install git-autocommit --marketplace reachdevel/claude-git-autocommit` (restart Claude Code afterwards)
+2. Or install the standalone hook: `npx claude-git-autocommit --user` (all projects) or `--project` (single repo)
+3. Claude Code will run it on every `Stop` and `StopFailure` event
 
 ## Releases
 
-- Version is in `package.json`.
-- Pushing a `v*` tag (e.g. `git tag v1.0.0 && git push origin v1.0.0`) triggers `.github/workflows/publish.yml`, which runs `npm ci`, `npm run build`, and `npm publish` to npm via OIDC trusted publishing.
-- `dist/` is gitignored — only `src/` and package metadata ship. The published package's `dist/` is built by CI from the tagged commit.
+- Version is in `package.json` **and** both `.claude-plugin` manifests. Bump all three together.
+- `dist/` is committed because git-installed plugins cannot build. Run `npm run build` before committing `src/` changes.
+- Pushing a `v*` tag (e.g. `git tag v1.1.0 && git push origin v1.1.0`) triggers `.github/workflows/publish.yml`, which runs `npm ci`, `npm run build`, and `npm publish` to npm via OIDC trusted publishing.
+- After publishing, create a GitHub release for the tag. Plugin users update with `claude plugin update claude-git-autocommit`.
